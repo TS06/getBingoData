@@ -137,7 +137,7 @@ void mergeData(char *output_name){
   std::ifstream ifs;
   std::ofstream ofs(output_name,std::ios::app);
   std::string temp;
-  std::string out_str;
+  std::string out_str,ID;
   char file_name[128];
 
   ifs.open("data1.txt");
@@ -147,6 +147,7 @@ void mergeData(char *output_name){
   
   //ƒJ[ƒhID
   ifs >> out_str;
+  ID=out_str;
   out_str+="\t";
   ifs.close();
 
@@ -163,6 +164,8 @@ void mergeData(char *output_name){
   }
 
   std::string str=Replace(out_str," ",",");
+
+  str+=","+ID;
 
   //  ofs << out_str<<"\n";
   ofs << str<<"\n";
