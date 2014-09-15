@@ -12,17 +12,15 @@
 
 //#include<opencv2/core/core.hpp>
 
-IplImage *toBinary(char *file_name);
-void cut(IplImage *src_img);
+int toBinary(char *file_name);
+void cut(char *img_name);
 void toStringFile();
 void mergeData(char *output_name);
 std::string Replace(std::string str,std::string from_str,std::string to_str);
 
 int main(){
-  IplImage *tmp;
-
-  tmp = toBinary("t02200269_0800097710223657231.jpg");
-  cut(tmp);
+  toBinary("BingoCard.jpg");
+  cut("Binary.jpg");
   toStringFile();
   mergeData("merge_data");
 }
@@ -62,7 +60,7 @@ int toBinary(char *file_name)
   // (6)元画像と二値画像の論理積
   //cvSmooth (src_img, src_img, CV_GAUSSIAN, 11);
   //cvAnd (dst_img, src_img, dst_img);
-  //cvSaveImage("Binary.jpg",tmp_img1);  
+  cvSaveImage("Binary.jpg",tmp_img1);  
 	  // (7)画像を表示する
   //cvNamedWindow ("Threshold", CV_WINDOW_AUTOSIZE);
   //cvShowImage ("Threshold", tmp_img1);
@@ -82,18 +80,26 @@ int toBinary(char *file_name)
   cvReleaseImage (&src_img);
   cvReleaseImage (&dst_img);
   cvReleaseImage (&src_img_gray);
+  cvReleaseImage (&tmp_img1);
   cvReleaseImage (&tmp_img2);
   cvReleaseImage (&tmp_img3);
 
-  return tmp_img1;
+  return 0;
 }
 
 //#include<opencv2/core/core.hpp>
 
 //画像カット
-void cut(IplImage *src_img){
+void cut(char *img_name){
+  IplImage* src_img = 0;
   IplImage* cut_img=0;
   int w,h,h_nohead;
+
+  src_img = cvLoadImage(img_name);
+  if(!src_img){
+    printf("Not reading %s !\n",img_name);
+    exit(0);
+  }
 
   w=src_img->width;
   h=src_img->height;
@@ -115,8 +121,6 @@ void cut(IplImage *src_img){
     cvSaveImage(save_name,cut_img);
   }
 
-  cvReleaseImage(&src_img);
-  cvReleaseImage(&cut_img);
 }
 
 //切り取った画像をテキストデータへ
@@ -158,18 +162,25 @@ void mergeData(char *output_name){
     ifs.close();
   }
 
-  ofs << out_str<<"\n";
+  std::string str=Replace(out_str," ",",");
+
+  //  ofs << out_str<<"\n";
+  ofs << str<<"\n";
   ofs.close();
   
 }
 
-//文字列置き換え（まだ未完）
+//文字列置き換え
 std::string Replace(std::string str,std::string from_str,std::string to_str){
   std::string::size_type Pos(str.find(from_str));
 
   while(Pos != std::string::npos){
     str.replace(Pos,from_str.length(),to_str);
     Pos = str.find(from_str, Pos + to_str.length());
+  }
+
+  if(str.length()-1==str.find_last_of(to_str)){
+    str=str.erase(str.find_last_of(to_str));
   }
 
   return str;
