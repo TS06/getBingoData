@@ -165,7 +165,7 @@ void mergeData(char *output_name){
 
   std::string str=Replace(out_str," ",",");
 
-  str+=","+ID;
+  //str+=","+ID;
 
   //  ofs << out_str<<"\n";
   ofs << str<<"\n";
