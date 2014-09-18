@@ -10,19 +10,37 @@
 #include<fstream>
 #include<iostream>
 
+#define HEAD_CUT 1.7
+
 //#include<opencv2/core/core.hpp>
 
 int toBinary(char *file_name);
+void resize(char *img_name,int size);
 void cut(char *img_name);
 void toStringFile();
 void mergeData(char *output_name);
 std::string Replace(std::string str,std::string from_str,std::string to_str);
 
-int main(){
-  toBinary("BingoCard.jpg");
-  cut("Binary.jpg");
-  toStringFile();
-  mergeData("merge_data");
+int main(int argc,char *argv[]){
+  if(argc!=3){
+    printf("Please input start number and end number !\n");
+    exit(1);
+  }
+  int start = atoi(argv[1]);
+  int end = atoi(argv[2]);
+
+  printf("%d %d\n",start,end);
+  for(int i=start;i<=end;i++){
+    char file_name[256];
+
+    sprintf(file_name,"BINGO_%d.jpg",i);
+
+    toBinary(file_name);
+    resize("Binary.jpg",6);
+    cut("Binary.jpg");
+    toStringFile();
+    mergeData("merge_data");
+  }
 }
 
 int toBinary(char *file_name)
@@ -48,7 +66,7 @@ int toBinary(char *file_name)
   cvSmooth (src_img_gray, src_img_gray, CV_GAUSSIAN, 5);
 
   // (3)二値化:cvThreshold
-  cvThreshold (src_img_gray, tmp_img1, 50, 255, CV_THRESH_BINARY);
+  cvThreshold (src_img_gray, tmp_img1, 60, 255, CV_THRESH_BINARY);
 
   // (4)二値化:cvAdaptiveThreshold
   //cvAdaptiveThreshold (src_img_gray, tmp_img2, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 11, 10);
@@ -89,6 +107,24 @@ int toBinary(char *file_name)
 
 //#include<opencv2/core/core.hpp>
 
+//画像サイズの変更
+void resize(char *img_name,int size){
+  IplImage *src_img,*resize_img;
+
+  src_img = cvLoadImage (img_name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);
+  if(src_img==0){
+    printf("Not found  %s !\n",img_name);
+    exit(0);
+  }
+  
+  resize_img =  cvCreateImage (cvSize (src_img->width * size, src_img->height * size), src_img->depth, src_img->nChannels);
+
+  cvResize(src_img,resize_img,CV_INTER_NN);
+
+  cvSaveImage(img_name,resize_img);
+
+}
+
 //画像カット
 void cut(char *img_name){
   IplImage* src_img = 0;
@@ -103,21 +139,21 @@ void cut(char *img_name){
 
   w=src_img->width;
   h=src_img->height;
-  h_nohead = h - h*1.5; //頭の部分を抜いた画像の高さ
+  h_nohead = h - h/8*HEAD_CUT; //頭の部分を抜いた画像の高さ
 
   char save_name[10];
 
   //頭の部分だけを抜き出し
   cut_img = cvCloneImage(src_img);
-  cvSetImageROI(cut_img,cvRect(0,0,w,h/8*1.5));
+  cvSetImageROI(cut_img,cvRect(cut_img->width/2-cut_img->width/16,0,w/HEAD_CUT,h/20*HEAD_CUT));
   sprintf(save_name,"cut%d.jpg",1);
   cvSaveImage(save_name,cut_img);
 
   //ビンゴの本体部分の抜き出し
-  for(int i=0;i<6;i++){
+  for(int i=0;i<5;i++){
     cut_img = cvCloneImage(src_img);
-    cvSetImageROI(cut_img,cvRect(0,h/6*i,w,h/6));
-    sprintf(save_name,"cut%d.jpg",i+1);
+    cvSetImageROI(cut_img,cvRect(0,h/8*HEAD_CUT+h_nohead/5*i,w,h_nohead/5));
+    sprintf(save_name,"cut%d.jpg",i+2);
     cvSaveImage(save_name,cut_img);
   }
 
